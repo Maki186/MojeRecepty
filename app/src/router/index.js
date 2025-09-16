@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import AddRecipe from '../views/AddRecipe.vue'
+import RecipeDetail from '../views/RecipeDetail.vue'
 
 const routes = [
   { path: '/', name: 'home', component: Home },
   { path: '/add', name: 'add', component: AddRecipe },
+  { path: '/recipe/:id', name: 'recipe', component: RecipeDetail },
 ]
 
 const router = createRouter({
