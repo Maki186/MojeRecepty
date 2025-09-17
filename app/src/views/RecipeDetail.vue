@@ -6,13 +6,6 @@
     </div>
     <h1 class="text-3xl font-bold mb-2">{{ recipe.title }}</h1>
     <div class="text-gray-600 mb-4 flex items-center gap-4">
-      <span v-if="recipe.minutes !== null">⏱️ {{ recipe.minutes }} min</span>
-      <div class="flex items-center gap-2">
-        <button @click="decrement" class="w-8 h-8 leading-8 text-center border rounded" aria-label="Méně porcí">−</button>
-        <input v-model.number="currentServings" type="number" min="1" class="w-16 text-center border rounded" />
-        <button @click="increment" class="w-8 h-8 leading-8 text-center border rounded" aria-label="Více porcí">+</button>
-        <span class="text-sm">porcí</span>
-      </div>
       <div class="flex gap-2 flex-wrap">
         <span v-for="c in recipe.categories" :key="c" class="px-2 py-0.5 text-xs rounded-full bg-gray-100 border">{{ c }}</span>
       </div>
@@ -21,6 +14,15 @@
 
     <div v-if="recipe.ingredients?.length" class="mb-6">
       <h2 class="text-xl font-semibold mb-2">Ingredience</h2>
+       <div class="text-gray-600 mb-4 flex items-center gap-4">
+      <span v-if="recipe.minutes !== null">⏱️ {{ recipe.minutes }} min</span>
+      <div class="flex items-center gap-2">
+        <button @click="decrement" class="w-8 h-8 leading-8 text-center border rounded" aria-label="Méně porcí">−</button>
+        <input v-model.number="currentServings" type="number" min="1" class="w-16 text-center border rounded" />
+        <button @click="increment" class="w-8 h-8 leading-8 text-center border rounded" aria-label="Více porcí">+</button>
+        <span class="text-sm">porcí</span>
+      </div>
+       </div>
       <ul class="list-disc pl-6 space-y-1">
         <li v-for="(ing, i) in scaledIngredients" :key="i">
           <label class="inline-flex items-start gap-2">
