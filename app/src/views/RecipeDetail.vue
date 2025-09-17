@@ -23,13 +23,18 @@
       <h2 class="text-xl font-semibold mb-2">Ingredience</h2>
       <ul class="list-disc pl-6 space-y-1">
         <li v-for="(ing, i) in scaledIngredients" :key="i">
-          <template v-if="ing.quantity !== null">
-            {{ formatQuantity(ing.quantity) }}
-            <span class="ml-1">{{ ing.name }}</span>
-          </template>
-          <template v-else>
-            {{ ing.name }}
-          </template>
+          <label class="inline-flex items-start gap-2">
+            <input type="checkbox" class="mt-1" :checked="isIngredientChecked(i)" @change="toggleIngredient(i)" />
+            <span :class="{ 'line-through text-gray-400': isIngredientChecked(i) }">
+              <template v-if="ing.quantity !== null">
+                {{ formatQuantity(ing.quantity) }}
+                <span class="ml-1">{{ ing.name }}</span>
+              </template>
+              <template v-else>
+                {{ ing.name }}
+              </template>
+            </span>
+          </label>
         </li>
       </ul>
     </div>
@@ -37,7 +42,12 @@
     <div v-if="recipe.steps?.length" class="mb-6">
       <h2 class="text-xl font-semibold mb-2">Postup</h2>
       <ol class="list-decimal pl-6 space-y-1">
-        <li v-for="(st, i) in recipe.steps" :key="i">{{ st }}</li>
+        <li v-for="(st, i) in recipe.steps" :key="i">
+          <label class="inline-flex items-start gap-2">
+            <input type="checkbox" class="mt-1" :checked="isStepChecked(i)" @change="toggleStep(i)" />
+            <span :class="{ 'line-through text-gray-400': isStepChecked(i) }">{{ st }}</span>
+          </label>
+        </li>
       </ol>
     </div>
 
@@ -59,9 +69,16 @@ const store = useRecipesStore()
 const recipeId = Number(route.params.id)
 const recipe = computed(() => store.recipes.find(r => r.id === recipeId))
 
+// Checked state for ingredients and steps (must be defined before watch with immediate)
+const checkedIngredients = ref(new Set())
+const checkedSteps = ref(new Set())
+
 const currentServings = ref(1)
 watch(recipe, (r) => {
   currentServings.value = r?.servings || 1
+  // Reset checked states when recipe changes
+  checkedIngredients.value = new Set()
+  checkedSteps.value = new Set()
 }, { immediate: true })
 
 function increment() {
@@ -93,6 +110,28 @@ function formatQuantity(q) {
   const whole = Math.round(q)
   if (Math.abs(whole - q) < 1e-9) return String(whole)
   return q.toFixed(2)
+}
+
+function toggleIngredient(index) {
+  const next = new Set(checkedIngredients.value)
+  if (next.has(index)) next.delete(index)
+  else next.add(index)
+  checkedIngredients.value = next
+}
+
+function isIngredientChecked(index) {
+  return checkedIngredients.value.has(index)
+}
+
+function toggleStep(index) {
+  const next = new Set(checkedSteps.value)
+  if (next.has(index)) next.delete(index)
+  else next.add(index)
+  checkedSteps.value = next
+}
+
+function isStepChecked(index) {
+  return checkedSteps.value.has(index)
 }
 </script>
 
