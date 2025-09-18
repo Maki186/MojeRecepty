@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRecipesStore } from '../stores/recipes'
 import { storeToRefs } from 'pinia'
 import { CATEGORIES } from '../constants/categories'
@@ -54,6 +54,10 @@ const allCategories = computed(() => ['Vše', ...CATEGORIES])
 function setCategory(c) {
   store.setActiveCategory(c)
 }
+
+onMounted(() => {
+  store.fetchRecipes().catch(() => {})
+})
 </script>
 
 

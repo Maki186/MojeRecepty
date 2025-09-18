@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { supabase } from '../lib/supabase'
 
 let nextId = 1
 
@@ -8,6 +9,31 @@ export const useRecipesStore = defineStore('recipes', {
     activeCategory: 'Vše',
   }),
   actions: {
+    async fetchRecipes() {
+      const { data: authData } = await supabase.auth.getUser()
+      const userId = authData?.user?.id
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      // Normalize
+      this.recipes = (data || []).map(r => ({
+        id: r.id,
+        title: r.title || 'Bez názvu',
+        description: r.description || '',
+        categories: Array.isArray(r.categories) ? r.categories : [],
+        minutes: Number.isFinite(+r.minutes) ? +r.minutes : null,
+        servings: Number.isFinite(+r.servings) ? +r.servings : 1,
+        notes: r.notes || '',
+        ingredients: Array.isArray(r.ingredients) ? r.ingredients : [],
+        steps: Array.isArray(r.steps) ? r.steps : [],
+      }))
+      // Keep nextId above max for local fallback
+      const maxId = this.recipes.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0)
+      nextId = Math.max(nextId, maxId + 1)
+    },
     addRecipe(recipe) {
       function parseIngredient(line) {
         const trimmed = String(line).trim()
@@ -54,6 +80,27 @@ export const useRecipesStore = defineStore('recipes', {
           : [],
       }
       this.recipes.unshift(item)
+      // Fire-and-forget persist; caller may await a new action if needed
+      this.persistCreate(item).catch(() => {})
+    },
+    async persistCreate(item) {
+      const { data: authData } = await supabase.auth.getUser()
+      const userId = authData?.user?.id
+      const { data, error } = await supabase.from('recipes').insert({
+        title: item.title,
+        description: item.description,
+        categories: item.categories,
+        minutes: item.minutes,
+        servings: item.servings,
+        notes: item.notes,
+        ingredients: item.ingredients,
+        steps: item.steps,
+        user_id: userId,
+      }).select('*').single()
+      if (error) throw error
+      // Replace temp id if needed
+      const idx = this.recipes.findIndex(r => r.id === item.id)
+      if (idx !== -1) this.recipes.splice(idx, 1, { ...item, id: data.id })
     },
     updateRecipe(id, updates) {
       function parseIngredient(line) {
@@ -99,6 +146,22 @@ export const useRecipesStore = defineStore('recipes', {
           : original.steps,
       }
       this.recipes.splice(index, 1, merged)
+      this.persistUpdate(merged).catch(() => {})
+    },
+    async persistUpdate(item) {
+      const { data: authData } = await supabase.auth.getUser()
+      const userId = authData?.user?.id
+      const { error } = await supabase.from('recipes').update({
+        title: item.title,
+        description: item.description,
+        categories: item.categories,
+        minutes: item.minutes,
+        servings: item.servings,
+        notes: item.notes,
+        ingredients: item.ingredients,
+        steps: item.steps,
+      }).eq('id', item.id).eq('user_id', userId)
+      if (error) throw error
     },
     setActiveCategory(category) {
       this.activeCategory = category
