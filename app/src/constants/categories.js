@@ -3,6 +3,10 @@ export const CATEGORIES = [
   'Těstoviny',
   'Pomazánky',
   'Moučníky',
+  'Svačiny',
+  'Saláty',
+  'Dezerty',
+  'Přílohy',
 ];
 
 
