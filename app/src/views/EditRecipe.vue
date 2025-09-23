@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-xl mx-auto p-6" v-if="recipe">
+  <div class="max-w-xl ml-3 mr-3 mt-3 p-6" v-if="recipe">
     <h1 class="text-2xl font-bold mb-4">Upravit recept</h1>
     <form @submit.prevent="submit" class="space-y-4">
       <div>

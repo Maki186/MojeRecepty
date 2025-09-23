@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-xl mx-auto p-6">
+  <div class="max-w-xl ml-3 mr-3 mt-3 p-6">
     <h1 class="text-2xl font-bold mb-4">Přidat recept</h1>
     <form @submit.prevent="submit" class="space-y-4">
       <div>
@@ -40,8 +40,8 @@
         </div>
       </div>
       <div class="flex gap-3">
-        <router-link to="/" class="px-4 py-2 border rounded-md">Zpět</router-link>
-        <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md">Uložit</button>
+        <v-btn to="/" variant="text" color="secondary">Zpět</v-btn>
+        <v-btn type="submit" color="primary" variant="flat" class="text-black">Uložit</v-btn>
       </div>
     </form>
   </div>

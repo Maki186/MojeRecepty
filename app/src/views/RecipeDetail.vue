@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-3xl mx-auto p-6" v-if="recipe">
+  <div class="max-w-3xl ml-3 mr-3 mt-3 p-6" v-if="recipe">
     <div class="mb-4">
       <v-btn variant="text" color="secondary" to="/">← Zpět</v-btn>
       <v-btn variant="flat" color="primary" class="text-black ml-2" :to="`/recipe/${recipe.id}/edit`">Upravit</v-btn>

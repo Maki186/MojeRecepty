@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-5xl mx-auto p-4 p-sm-6">
+  <div class="max-w-5xl ml-3 mr-3 mt-3 p-4 p-sm-6 ">
     <h1 class="text-3xl font-bold mb-4">Moje Recepty</h1>
     <p class="text-gray-600 mb-6">Přehled uložených receptů.</p>
 
