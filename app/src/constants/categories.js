@@ -6,7 +6,9 @@ export const CATEGORIES = [
   'Svačiny',
   'Saláty',
   'Dezerty',
-  'Přílohy',
+  'Obědy',
+  'Večeře',
+  'Zavařeniny',
 ];
 
 
