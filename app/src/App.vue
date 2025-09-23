@@ -1,25 +1,22 @@
 <template>
-  <div>
-    <nav class="border-b">
-      <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-        <router-link to="/" class="font-semibold">Moje Recepty</router-link>
-        <div class="flex items-center gap-4">
-          <router-link to="/" class="text-sm text-gray-700">Domů</router-link>
-          <router-link to="/add" class="text-sm text-gray-700">Přidat</router-link>
-          <template v-if="isAuthenticated">
-            <span class="text-sm text-gray-600">Přihlášen: {{ username }}</span>
-            <button @click="logout" class="text-sm text-blue-600">Odhlásit</button>
-          </template>
-          <template v-else>
-            <router-link to="/login" class="text-sm text-blue-600">Přihlásit</router-link>
-          </template>
-        </div>
-      </div>
-    </nav>
-    <main>
+  <v-app>
+    <v-app-bar elevation="1" color="primary">
+      <v-app-bar-title class="font-semibold">Moje Recepty</v-app-bar-title>
+      <v-spacer />
+      <v-btn variant="flat" color="secondary" to="/">Domů</v-btn>
+      <v-btn variant="flat" color="secondary" to="/add">Přidat</v-btn>
+      <template v-if="isAuthenticated">
+        <v-chip class="ml-2" color="secondary" text-color="white" prepend-icon="mdi-account-circle">{{ username }}</v-chip>
+        <v-btn class="ml-2" variant="flat" color="secondary" @click="logout">Odhlásit</v-btn>
+      </template>
+      <template v-else>
+        <v-btn class="ml-2" variant="flat" color="secondary" to="/login">Přihlásit</v-btn>
+      </template>
+    </v-app-bar>
+    <v-main>
       <router-view />
-    </main>
-  </div>
+    </v-main>
+  </v-app>
   
 </template>
 

@@ -1,13 +1,13 @@
 <template>
   <div class="max-w-3xl mx-auto p-6" v-if="recipe">
     <div class="mb-4">
-      <router-link to="/" class="text-sm text-blue-600 hover:underline">← Zpět</router-link>
-      <router-link :to="`/recipe/${recipe.id}/edit`" class="ml-4 text-sm text-blue-600 hover:underline">Upravit</router-link>
+      <v-btn variant="text" color="secondary" to="/">← Zpět</v-btn>
+      <v-btn variant="flat" color="primary" class="text-black ml-2" :to="`/recipe/${recipe.id}/edit`">Upravit</v-btn>
     </div>
     <h1 class="text-3xl font-bold mb-2">{{ recipe.title }}</h1>
     <div class="text-gray-600 mb-4 flex items-center gap-4">
       <div class="flex gap-2 flex-wrap">
-        <span v-for="c in recipe.categories" :key="c" class="px-2 py-0.5 text-xs rounded-full bg-gray-100 border">{{ c }}</span>
+        <v-chip v-for="c in recipe.categories" :key="c" size="small" variant="outlined" :prepend-icon="iconForCategory(c)">{{ c }}</v-chip>
       </div>
     </div>
     <p class="text-gray-800 leading-relaxed whitespace-pre-line mb-6">{{ recipe.description }}</p>
@@ -17,16 +17,16 @@
        <div class="text-gray-600 mb-4 flex items-center gap-4">
       <span v-if="recipe.minutes !== null">⏱️ {{ recipe.minutes }} min</span>
       <div class="flex items-center gap-2">
-        <button @click="decrement" class="w-8 h-8 leading-8 text-center border rounded" aria-label="Méně porcí">−</button>
-        <input v-model.number="currentServings" type="number" min="1" class="w-16 text-center border rounded" />
-        <button @click="increment" class="w-8 h-8 leading-8 text-center border rounded" aria-label="Více porcí">+</button>
+        <v-btn @click="decrement" size="small" variant="flat" color="primary" class="text-black" aria-label="Méně porcí">−</v-btn>
+        <v-text-field v-model.number="currentServings" type="number" min="1" class="w-24" density="compact" hide-details />
+        <v-btn @click="increment" size="small" variant="flat" color="primary" class="text-black" aria-label="Více porcí">+</v-btn>
         <span class="text-sm">porcí</span>
       </div>
        </div>
       <ul class="list-disc pl-6 space-y-1">
         <li v-for="(ing, i) in scaledIngredients" :key="i">
           <label class="inline-flex items-start gap-2">
-            <input type="checkbox" class="mt-1" :checked="isIngredientChecked(i)" @change="toggleIngredient(i)" />
+            <v-checkbox-btn :model-value="isIngredientChecked(i)" @update:model-value="toggleIngredient(i)" />
             <span :class="{ 'line-through text-gray-400': isIngredientChecked(i) }">
               <template v-if="ing.quantity !== null">
                 {{ formatQuantity(ing.quantity) }}
@@ -46,7 +46,7 @@
       <ol class="list-decimal pl-6 space-y-1">
         <li v-for="(st, i) in recipe.steps" :key="i">
           <label class="inline-flex items-start gap-2">
-            <input type="checkbox" class="mt-1" :checked="isStepChecked(i)" @change="toggleStep(i)" />
+            <v-checkbox-btn :model-value="isStepChecked(i)" @update:model-value="toggleStep(i)" />
             <span :class="{ 'line-through text-gray-400': isStepChecked(i) }">{{ st }}</span>
           </label>
         </li>
@@ -134,6 +134,17 @@ function toggleStep(index) {
 
 function isStepChecked(index) {
   return checkedSteps.value.has(index)
+}
+
+function iconForCategory(c) {
+  const key = String(c).toLowerCase()
+  if (key.includes('polév')) return 'mdi-pot-steam-outline'
+  if (key.includes('hlav') || key.includes('maso')) return 'mdi-food-steak'
+  if (key.includes('dezert') || key.includes('slad')) return 'mdi-cupcake'
+  if (key.includes('příloh')) return 'mdi-food-variant'
+  if (key.includes('salát')) return 'mdi-food-outline'
+  if (key.includes('snída') || key.includes('pala')) return 'mdi-food-croissant'
+  return 'mdi-tag-outline'
 }
 </script>
 
