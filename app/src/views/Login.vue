@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-sm mx-auto p-6">
+  <div class="max-w-sm ml-3 mr-3 mt-3 p-6">
     <h1 class="text-2xl font-semibold mb-4">Přihlášení</h1>
     <form @submit.prevent="onSubmit" class="space-y-4">
       <div>
@@ -8,12 +8,12 @@
       </div>
       <div>
         <label class="block text-sm mb-1">Heslo</label>
-        <input v-model="password" type="password" class="w-full border rounded px-3 py-2" autocomplete="current-password" />
+        <input v-model="password" type="password" class="w-full border rounded px-3 py-2 mb-4" autocomplete="current-password" />
       </div>
       <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
       <div class="flex items-center gap-2">
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Přihlásit</button>
-        <router-link to="/" class="text-sm text-gray-600">Zpět</router-link>
+        <v-btn type="submit" color="primary" variant="flat" class="text-black">Přihlásit se</v-btn>
+        <v-btn to="/" variant="text" color="secondary">Zpět</v-btn>
       </div>
     </form>
   </div>

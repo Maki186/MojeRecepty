@@ -40,8 +40,8 @@
         <textarea v-model="notes" class="w-full border rounded-md px-3 py-2" rows="3"></textarea>
       </div>
       <div class="flex gap-3">
-        <router-link :to="`/recipe/${recipe.id}`" class="px-4 py-2 border rounded-md">Zpět</router-link>
-        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">Uložit změny</button>
+        <v-btn :to="`/recipe/${recipe.id}`" variant="text" color="secondary">Zpět</v-btn>
+        <v-btn type="submit" color="primary" variant="flat" class="text-black">Uložit změny</v-btn>
       </div>
     </form>
   </div>
