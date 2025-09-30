@@ -148,6 +148,12 @@ export const useRecipesStore = defineStore('recipes', {
       this.recipes.splice(index, 1, merged)
       this.persistUpdate(merged).catch(() => {})
     },
+    deleteRecipe(id) {
+      const index = this.recipes.findIndex(r => r.id === id)
+      if (index === -1) return
+      const removed = this.recipes.splice(index, 1)[0]
+      this.persistDelete(removed).catch(() => {})
+    },
     async persistUpdate(item) {
       const { data: authData } = await supabase.auth.getUser()
       const userId = authData?.user?.id
@@ -161,6 +167,12 @@ export const useRecipesStore = defineStore('recipes', {
         ingredients: item.ingredients,
         steps: item.steps,
       }).eq('id', item.id).eq('user_id', userId)
+      if (error) throw error
+    },
+    async persistDelete(item) {
+      const { data: authData } = await supabase.auth.getUser()
+      const userId = authData?.user?.id
+      const { error } = await supabase.from('recipes').delete().eq('id', item.id).eq('user_id', userId)
       if (error) throw error
     },
     setActiveCategory(category) {

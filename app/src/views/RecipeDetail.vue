@@ -3,6 +3,7 @@
     <div class="mb-4">
       <v-btn variant="text" color="secondary" to="/">← Zpět</v-btn>
       <v-btn variant="flat" color="primary" class="text-black ml-2" :to="`/recipe/${recipe.id}/edit`">Upravit</v-btn>
+      <v-btn variant="flat" color="red" class="text-black ml-2" @click="openDelete = true">Smazat</v-btn>
     </div>
     <h1 class="text-3xl font-bold mb-2">{{ recipe.title }}</h1>
     <div class="text-gray-600 mb-4 flex items-center gap-4">
@@ -57,6 +58,16 @@
       <h2 class="text-xl font-semibold mb-2">Poznámky</h2>
       <p class="whitespace-pre-line text-gray-800">{{ recipe.notes }}</p>
     </div>
+    <v-dialog v-model="openDelete" max-width="420">
+      <v-card>
+        <v-card-title>Opravdu si přejete recept smazat?</v-card-title>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" color="secondary" @click="openDelete = false">Zrušit</v-btn>
+          <v-btn color="primary" variant="flat" class="text-black" @click="confirmDelete">Smazat</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
   <div v-else class="max-w-3xl mx-auto p-6 text-gray-600">Recept nenalezen.</div>
 </template>
@@ -65,9 +76,11 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRecipesStore } from '../stores/recipes'
+import { useRouter } from 'vue-router'
 
 const route = useRoute()
 const store = useRecipesStore()
+const router = useRouter()
 const recipeId = Number(route.params.id)
 const recipe = computed(() => store.recipes.find(r => r.id === recipeId))
 
@@ -90,6 +103,13 @@ function decrement() {
   currentServings.value = Math.max(1, (currentServings.value || 1) - 1)
 }
 
+// Delete dialog state
+const openDelete = ref(false)
+function confirmDelete() {
+  if (!recipe.value) return
+  store.deleteRecipe(recipe.value.id)
+  router.push('/')
+}
 const scale = computed(() => {
   const base = recipe.value?.servings || 1
   const cur = currentServings.value || 1
