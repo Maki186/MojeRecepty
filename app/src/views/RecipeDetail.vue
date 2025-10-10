@@ -64,7 +64,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" color="secondary" @click="openDelete = false">Zrušit</v-btn>
-          <v-btn color="primary" variant="flat" class="text-black" @click="confirmDelete">Smazat</v-btn>
+          <v-btn color="red" variant="flat" class="text-black" @click="confirmDelete">Smazat</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
