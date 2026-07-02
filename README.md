@@ -8,8 +8,7 @@ Soukroma webova aplikace pro ukladani rodinnych receptu. Frontend je postaveny j
 - `Vite`
 - `Vue Router`
 - `Pinia`
-- `Vuetify`
-- `Tailwind CSS`
+- `Vuetify 3`
 - `Supabase`
 
 ## Struktura projektu

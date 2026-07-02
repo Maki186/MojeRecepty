@@ -1,109 +1,80 @@
 <template>
-  <div class="max-w-xl ml-3 mr-3 mt-3 p-6" v-if="recipe">
-    <h1 class="text-2xl font-bold mb-4">Upravit recept</h1>
-    <form @submit.prevent="submit" class="space-y-4">
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-      <div>
-        <label class="block text-sm font-medium mb-1">Název</label>
-        <input v-model="title" class="w-full border rounded-md px-3 py-2" required />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Popis</label>
-        <textarea v-model="description" class="w-full border rounded-md px-3 py-2" rows="4"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Doba přípravy (minuty)</label>
-        <input v-model.number="minutes" type="number" min="0" step="1" class="w-full border rounded-md px-3 py-2" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Počet porcí</label>
-        <input v-model.number="servings" type="number" min="1" step="1" class="w-full border rounded-md px-3 py-2" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-2">Kategorie</label>
-        <div class="grid grid-cols-2 gap-2">
-          <label v-for="c in categories" :key="c" class="inline-flex items-center gap-2 text-sm">
-            <input type="checkbox" :value="c" v-model="selectedCategories" />
-            <span>{{ c }}</span>
-          </label>
-        </div>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Ingredience (každá na nový řádek)</label>
-        <textarea v-model="ingredientsText" class="w-full border rounded-md px-3 py-2" rows="4"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Postup (každý krok na nový řádek)</label>
-        <textarea v-model="stepsText" class="w-full border rounded-md px-3 py-2" rows="5"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Poznámky</label>
-        <textarea v-model="notes" class="w-full border rounded-md px-3 py-2" rows="3"></textarea>
-      </div>
-      <div class="flex gap-3">
-        <v-btn :to="`/recipe/${recipe.id}`" variant="text" color="secondary">Zpět</v-btn>
-        <v-btn type="submit" color="primary" variant="flat" class="text-black" :loading="saving" :disabled="saving">Uložit změny</v-btn>
-      </div>
-    </form>
-  </div>
-  <div v-else-if="store.loading" class="max-w-xl mx-auto p-6 text-gray-600">Načítám recept...</div>
-  <div v-else-if="store.error" class="max-w-xl mx-auto p-6 text-red-600">{{ store.error }}</div>
-  <div v-else class="max-w-xl mx-auto p-6 text-gray-600">Recept nenalezen.</div>
+  <PageContainer size="narrow">
+    <v-progress-linear v-if="store.loading" indeterminate color="primary" class="mb-6 rounded-lg" />
+
+    <v-alert
+      v-else-if="store.error"
+      type="error"
+      variant="tonal"
+      :text="store.error"
+    />
+
+    <v-card v-else-if="recipe" class="pa-2 pa-sm-6">
+      <v-card-item class="pb-0">
+        <v-card-title class="text-h5 font-weight-bold">Upravit recept</v-card-title>
+        <v-card-subtitle>{{ recipe.title }}</v-card-subtitle>
+      </v-card-item>
+
+      <v-card-text>
+        <RecipeForm
+          :initial="formInitial"
+          :saving="saving"
+          :error="error"
+          submit-label="Uložit změny"
+          @submit="submit"
+          @cancel="router.push(`/recipe/${recipeId}`)"
+        />
+      </v-card-text>
+    </v-card>
+
+    <v-card v-else class="pa-8 text-center">
+      <v-icon icon="mdi-alert-circle-outline" size="48" color="accent" class="mb-4" />
+      <p class="text-h6 font-weight-medium mb-2">Recept nenalezen</p>
+      <v-btn to="/" variant="text" color="secondary">Zpět na přehled</v-btn>
+    </v-card>
+  </PageContainer>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import PageContainer from '../components/PageContainer.vue'
+import RecipeForm from '../components/RecipeForm.vue'
 import { useRecipesStore } from '../stores/recipes'
-import { CATEGORIES as categories } from '../constants/categories'
 
 const route = useRoute()
 const router = useRouter()
 const store = useRecipesStore()
 const recipeId = computed(() => String(route.params.id))
 const recipe = computed(() => store.getRecipeById(recipeId.value))
-
-const title = ref('')
-const description = ref('')
-const minutes = ref(null)
-const servings = ref(1)
-const selectedCategories = ref([])
-const ingredientsText = ref('')
-const stepsText = ref('')
-const notes = ref('')
 const saving = ref(false)
 const error = ref('')
 
-watch(recipe, (value) => {
-  if (!value) return
-  title.value = value.title
-  description.value = value.description
-  minutes.value = value.minutes
-  servings.value = value.servings
-  selectedCategories.value = [...(value.categories || [])]
-  ingredientsText.value = (value.ingredients || []).map(i => (i.quantity != null ? `${i.quantity} ${i.name}` : i.name)).join('\n')
-  stepsText.value = (value.steps || []).join('\n')
-  notes.value = value.notes || ''
-}, { immediate: true })
+const formInitial = computed(() => {
+  if (!recipe.value) return {}
+  return {
+    title: recipe.value.title,
+    description: recipe.value.description,
+    minutes: recipe.value.minutes,
+    servings: recipe.value.servings,
+    categories: recipe.value.categories,
+    ingredientsText: (recipe.value.ingredients || [])
+      .map(i => (i.quantity != null ? `${i.quantity} ${i.name}` : i.name))
+      .join('\n'),
+    stepsText: (recipe.value.steps || []).join('\n'),
+    notes: recipe.value.notes || '',
+  }
+})
 
 onMounted(() => {
   store.ensureRecipesLoaded().catch(() => {})
 })
 
-async function submit() {
+async function submit(updates) {
   error.value = ''
   saving.value = true
   try {
-    await store.updateRecipe(recipeId.value, {
-      title: title.value,
-      description: description.value,
-      minutes: minutes.value,
-      servings: servings.value,
-      categories: selectedCategories.value,
-      ingredients: ingredientsText.value.split('\n').map(s => s.trim()).filter(Boolean),
-      steps: stepsText.value.split('\n').map(s => s.trim()).filter(Boolean),
-      notes: notes.value,
-    })
+    await store.updateRecipe(recipeId.value, updates)
     router.push(`/recipe/${recipeId.value}`)
   } catch (e) {
     error.value = e?.message || 'Uložení změn selhalo.'
@@ -112,5 +83,3 @@ async function submit() {
   }
 }
 </script>
-
-

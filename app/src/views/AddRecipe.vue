@@ -1,86 +1,43 @@
 <template>
-  <div class="max-w-xl ml-3 mr-3 mt-3 p-6">
-    <h1 class="text-2xl font-bold mb-4">Přidat recept</h1>
-    <form @submit.prevent="submit" class="space-y-4">
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-      <div>
-        <label class="block text-sm font-medium mb-1">Název</label>
-        <input v-model="title" class="w-full border rounded-md px-3 py-2" required />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Popis</label>
-        <textarea v-model="description" class="w-full border rounded-md px-3 py-2" rows="4"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Doba přípravy (minuty)</label>
-        <input v-model.number="minutes" type="number" min="0" step="1" class="w-full border rounded-md px-3 py-2" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Počet porcí</label>
-        <input v-model.number="servings" type="number" min="1" step="1" class="w-full border rounded-md px-3 py-2" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Ingredience (každá na nový řádek)</label>
-        <textarea v-model="ingredientsText" class="w-full border rounded-md px-3 py-2" rows="4" placeholder="např.\n2 vejce\n200 g mouky\nšpetka soli"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Postup (každý krok na nový řádek)</label>
-        <textarea v-model="stepsText" class="w-full border rounded-md px-3 py-2" rows="5" placeholder="např.\nPředehřejte troubu na 180 °C\nSmíchejte suché ingredience\nVmíchejte vejce a mléko"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Poznámky</label>
-        <textarea v-model="notes" class="w-full border rounded-md px-3 py-2" rows="3" placeholder="Tipy, obměny apod."></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-2">Kategorie</label>
-        <div class="grid grid-cols-2 gap-2">
-          <label v-for="c in categories" :key="c" class="inline-flex items-center gap-2 text-sm">
-            <input type="checkbox" :value="c" v-model="selectedCategories" />
-            <span>{{ c }}</span>
-          </label>
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <v-btn to="/" variant="text" color="secondary">Zpět</v-btn>
-        <v-btn type="submit" color="primary" variant="flat" class="text-black" :loading="saving" :disabled="saving">Uložit</v-btn>
-      </div>
-    </form>
-  </div>
+  <PageContainer size="narrow">
+    <v-card class="pa-2 pa-sm-6">
+      <v-card-item class="pb-0">
+        <v-card-title class="text-h5 font-weight-bold">Přidat recept</v-card-title>
+        <v-card-subtitle>
+          Vyplň údaje a ulož nový recept do sbírky
+        </v-card-subtitle>
+      </v-card-item>
+
+      <v-card-text>
+        <RecipeForm
+          :saving="saving"
+          :error="error"
+          submit-label="Uložit recept"
+          @submit="submit"
+          @cancel="router.push('/')"
+        />
+      </v-card-text>
+    </v-card>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import PageContainer from '../components/PageContainer.vue'
+import RecipeForm from '../components/RecipeForm.vue'
 import { useRecipesStore } from '../stores/recipes'
-import { CATEGORIES as categories } from '../constants/categories'
 
-const title = ref('')
-const description = ref('')
-const selectedCategories = ref([])
-const minutes = ref(null)
-const servings = ref(1)
-const ingredientsText = ref('')
-const stepsText = ref('')
-const notes = ref('')
 const router = useRouter()
 const store = useRecipesStore()
 const saving = ref(false)
 const error = ref('')
 
-async function submit() {
+async function submit(recipe) {
   error.value = ''
   saving.value = true
   try {
-    await store.addRecipe({
-      title: title.value,
-      description: description.value,
-      categories: selectedCategories.value,
-      minutes: minutes.value,
-      servings: servings.value,
-      ingredients: ingredientsText.value.split('\n').map(s => s.trim()).filter(Boolean),
-      steps: stepsText.value.split('\n').map(s => s.trim()).filter(Boolean),
-      notes: notes.value,
-    })
+    await store.addRecipe(recipe)
     router.push('/')
   } catch (e) {
     error.value = e?.message || 'Uložení receptu selhalo.'
@@ -89,6 +46,3 @@ async function submit() {
   }
 }
 </script>
-
-
-

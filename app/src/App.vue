@@ -1,23 +1,40 @@
 <template>
   <v-app>
-    <v-app-bar elevation="1" color="primary">
-      <v-app-bar-title class="font-semibold">Moje Recepty</v-app-bar-title>
-      <v-spacer />
-      <v-btn variant="flat" color="secondary" to="/">Domů</v-btn>
-      <v-btn variant="flat" color="secondary" to="/add">Přidat</v-btn>
-      <template v-if="isAuthenticated">
-        <v-chip class="ml-2" color="secondary" text-color="white" prepend-icon="mdi-account-circle">{{ username }}</v-chip>
-        <v-btn class="ml-2" variant="flat" color="secondary" @click="logout">Odhlásit</v-btn>
+    <v-app-bar color="surface-variant" elevation="0" border>
+      <template #prepend>
+        <v-btn icon="mdi-silverware-fork-knife" color="primary" variant="text" to="/" />
       </template>
-      <template v-else>
-        <v-btn class="ml-2" variant="flat" color="secondary" to="/login">Přihlásit</v-btn>
+
+      <v-app-bar-title class="font-weight-bold text-body-1 text-sm-h6">
+        Moje Recepty
+      </v-app-bar-title>
+
+      <template #append>
+        <v-btn icon="mdi-home-outline" color="secondary" variant="text" to="/" />
+        <v-btn icon="mdi-plus" color="primary" variant="text" to="/add" />
+
+        <template v-if="isAuthenticated">
+          <v-menu location="bottom end">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-account-circle-outline" color="secondary" variant="text" />
+            </template>
+            <v-list density="compact" min-width="220">
+              <v-list-item :title="username" subtitle="Přihlášený uživatel" prepend-icon="mdi-email-outline" />
+              <v-divider class="my-1" />
+              <v-list-item title="Odhlásit se" prepend-icon="mdi-logout" @click="logout" />
+            </v-list>
+          </v-menu>
+        </template>
+        <v-btn v-else variant="flat" color="primary" size="small" to="/login" class="ml-1">
+          Přihlásit
+        </v-btn>
       </template>
     </v-app-bar>
-    <v-main>
+
+    <v-main class="bg-background">
       <router-view />
     </v-main>
   </v-app>
-  
 </template>
 
 <script setup>
@@ -36,4 +53,3 @@ function logout() {
   auth.logout()
 }
 </script>
-

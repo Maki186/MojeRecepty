@@ -1,106 +1,221 @@
 <template>
-  <div class="max-w-3xl ml-3 mr-3 mt-3 p-6" v-if="recipe">
-    <div class="mb-4">
-      <v-btn variant="text" color="secondary" to="/">← Zpět</v-btn>
-      <v-btn variant="flat" color="primary" class="text-black ml-2" :to="`/recipe/${recipe.id}/edit`">Upravit</v-btn>
-      <v-btn variant="flat" color="red" class="text-black ml-2" @click="openDelete = true">Smazat</v-btn>
-    </div>
-    <p v-if="error" class="text-sm text-red-600 mb-4">{{ error }}</p>
-    <h1 class="text-3xl font-bold mb-2">{{ recipe.title }}</h1>
-    <div class="text-gray-600 mb-4 flex items-center gap-4">
-      <div class="flex gap-2 flex-wrap">
-        <v-chip v-for="c in recipe.categories" :key="c" size="small" variant="outlined" :prepend-icon="iconForCategory(c)">{{ c }}</v-chip>
-      </div>
-    </div>
-    <p class="text-gray-800 leading-relaxed whitespace-pre-line mb-6">{{ recipe.description }}</p>
+  <PageContainer>
+    <v-progress-linear v-if="store.loading" indeterminate color="primary" class="mb-6 rounded-lg" />
 
-    <div v-if="recipe.ingredients?.length" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Ingredience</h2>
-       <div class="text-gray-600 mb-4 flex items-center gap-4">
-      <span v-if="recipe.minutes !== null">⏱️ {{ recipe.minutes }} min</span>
-      <div class="flex items-center gap-2">
-        <v-btn @click="decrement" size="small" variant="flat" color="primary" class="text-black" aria-label="Méně porcí">−</v-btn>
-        <v-text-field v-model.number="currentServings" type="number" min="1" class="w-24" density="compact" hide-details />
-        <v-btn @click="increment" size="small" variant="flat" color="primary" class="text-black" aria-label="Více porcí">+</v-btn>
-        <span class="text-sm">porcí</span>
+    <v-alert
+      v-else-if="store.error"
+      type="error"
+      variant="tonal"
+      :text="store.error"
+    />
+
+    <template v-else-if="recipe">
+      <div class="d-flex flex-wrap ga-2 mb-4">
+        <v-btn variant="text" color="secondary" prepend-icon="mdi-arrow-left" to="/">
+          Zpět
+        </v-btn>
+        <v-spacer class="d-none d-sm-block" />
+        <v-btn
+          color="accent"
+          variant="tonal"
+          prepend-icon="mdi-pencil-outline"
+          :to="`/recipe/${recipe.id}/edit`"
+        >
+          Upravit
+        </v-btn>
+        <v-btn
+          color="error"
+          variant="tonal"
+          prepend-icon="mdi-delete-outline"
+          @click="openDelete = true"
+        >
+          Smazat
+        </v-btn>
       </div>
-       </div>
-      <ul class="list-disc pl-6 space-y-1">
-        <li v-for="(ing, i) in scaledIngredients" :key="i">
-          <label class="inline-flex items-start gap-2">
-            <v-checkbox-btn :model-value="isIngredientChecked(i)" @update:model-value="toggleIngredient(i)" />
-            <span :class="{ 'line-through text-gray-400': isIngredientChecked(i) }">
-              <template v-if="ing.quantity !== null">
-                {{ formatQuantity(ing.quantity) }}
-                <span class="ml-1">{{ ing.name }}</span>
-              </template>
-              <template v-else>
-                {{ ing.name }}
-              </template>
+
+      <v-alert
+        v-if="error"
+        type="error"
+        variant="tonal"
+        density="compact"
+        class="mb-4"
+        :text="error"
+      />
+
+      <v-card class="mb-4">
+        <v-card-item>
+          <v-card-title class="text-h4 text-wrap">{{ recipe.title }}</v-card-title>
+          <v-card-subtitle class="d-flex flex-wrap align-center ga-3 mt-2">
+            <span v-if="recipe.minutes !== null" class="d-inline-flex align-center ga-1">
+              <v-icon icon="mdi-clock-outline" size="small" />
+              {{ recipe.minutes }} min
             </span>
-          </label>
-        </li>
-      </ul>
-    </div>
+            <span class="d-inline-flex align-center ga-1">
+              <v-icon icon="mdi-account-group-outline" size="small" />
+              {{ recipe.servings }} porcí
+            </span>
+          </v-card-subtitle>
+        </v-card-item>
 
-    <div v-if="recipe.steps?.length" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Postup</h2>
-      <ol class="list-decimal pl-6 space-y-1">
-        <li v-for="(st, i) in recipe.steps" :key="i">
-          <label class="inline-flex items-start gap-2">
-            <v-checkbox-btn :model-value="isStepChecked(i)" @update:model-value="toggleStep(i)" />
-            <span :class="{ 'line-through text-gray-400': isStepChecked(i) }">{{ st }}</span>
-          </label>
-        </li>
-      </ol>
-    </div>
+        <v-card-text v-if="recipe.categories?.length" class="pt-0">
+          <div class="d-flex flex-wrap ga-2">
+            <v-chip
+              v-for="category in recipe.categories"
+              :key="category"
+              size="small"
+              variant="tonal"
+              color="secondary"
+              :prepend-icon="iconForCategory(category)"
+            >
+              {{ category }}
+            </v-chip>
+          </div>
+        </v-card-text>
 
-    <div v-if="recipe.notes" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Poznámky</h2>
-      <p class="whitespace-pre-line text-gray-800">{{ recipe.notes }}</p>
-    </div>
-    <v-dialog v-model="openDelete" max-width="420">
-      <v-card>
-        <v-card-title>Opravdu si přejete recept smazat?</v-card-title>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" color="secondary" @click="openDelete = false">Zrušit</v-btn>
-          <v-btn color="red" variant="flat" class="text-black" :loading="deleting" :disabled="deleting" @click="confirmDelete">Smazat</v-btn>
-        </v-card-actions>
+        <v-card-text v-if="recipe.description" class="text-body-1">
+          {{ recipe.description }}
+        </v-card-text>
       </v-card>
-    </v-dialog>
-  </div>
-  <div v-else-if="store.loading" class="max-w-3xl mx-auto p-6 text-gray-600">Načítám recept...</div>
-  <div v-else-if="store.error" class="max-w-3xl mx-auto p-6 text-red-600">{{ store.error }}</div>
-  <div v-else class="max-w-3xl mx-auto p-6 text-gray-600">Recept nenalezen.</div>
+
+      <v-card v-if="recipe.ingredients?.length" class="mb-4">
+        <v-card-title class="text-h6">Ingredience</v-card-title>
+        <v-card-text>
+          <div class="d-flex align-center flex-wrap ga-3 mb-4">
+            <span class="text-body-2 text-medium-emphasis">Přepočítat na</span>
+            <v-btn-group density="comfortable" divided>
+              <v-btn icon="mdi-minus" variant="outlined" @click="decrement" />
+              <v-text-field
+                v-model.number="currentServings"
+                type="number"
+                min="1"
+                density="compact"
+                hide-details
+                style="max-width: 72px"
+                class="servings-input"
+              />
+              <v-btn icon="mdi-plus" variant="outlined" @click="increment" />
+            </v-btn-group>
+            <span class="text-body-2">porcí</span>
+          </div>
+
+          <v-list lines="two" density="comfortable" class="pa-0">
+            <v-list-item
+              v-for="(ingredient, index) in scaledIngredients"
+              :key="index"
+              :class="{ 'line-through': isIngredientChecked(index) }"
+              @click="toggleIngredient(index)"
+            >
+              <template #prepend>
+                <v-checkbox-btn
+                  :model-value="isIngredientChecked(index)"
+                  @click.stop
+                  @update:model-value="toggleIngredient(index)"
+                />
+              </template>
+              <v-list-item-title>
+                <template v-if="ingredient.quantity !== null">
+                  {{ formatQuantity(ingredient.quantity) }} {{ ingredient.name }}
+                </template>
+                <template v-else>
+                  {{ ingredient.name }}
+                </template>
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+      </v-card>
+
+      <v-card v-if="recipe.steps?.length" class="mb-4">
+        <v-card-title class="text-h6">Postup</v-card-title>
+        <v-card-text class="pt-0">
+          <v-timeline side="end" density="compact" truncate-line="both">
+            <v-timeline-item
+              v-for="(step, index) in recipe.steps"
+              :key="index"
+              dot-color="accent"
+              size="small"
+            >
+              <div
+                class="d-flex align-start ga-2"
+                :class="{ 'line-through': isStepChecked(index) }"
+                @click="toggleStep(index)"
+              >
+                <v-checkbox-btn
+                  :model-value="isStepChecked(index)"
+                  @click.stop
+                  @update:model-value="toggleStep(index)"
+                />
+                <span class="text-body-1">{{ step }}</span>
+              </div>
+            </v-timeline-item>
+          </v-timeline>
+        </v-card-text>
+      </v-card>
+
+      <v-card v-if="recipe.notes">
+        <v-card-title class="text-h6">Poznámky</v-card-title>
+        <v-card-text class="text-body-1" style="white-space: pre-line">
+          {{ recipe.notes }}
+        </v-card-text>
+      </v-card>
+
+      <v-dialog v-model="openDelete" max-width="420">
+        <v-card>
+          <v-card-title>Smazat recept?</v-card-title>
+          <v-card-text>
+            Tato akce je nevratná. Recept „{{ recipe.title }}“ bude trvale odstraněn.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" color="secondary" @click="openDelete = false">Zrušit</v-btn>
+            <v-btn
+              color="error"
+              variant="flat"
+              :loading="deleting"
+              :disabled="deleting"
+              @click="confirmDelete"
+            >
+              Smazat
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </template>
+
+    <v-card v-else class="pa-8 text-center">
+      <v-icon icon="mdi-alert-circle-outline" size="48" color="accent" class="mb-4" />
+      <p class="text-h6 font-weight-medium mb-2">Recept nenalezen</p>
+      <v-btn to="/" variant="text" color="secondary">Zpět na přehled</v-btn>
+    </v-card>
+  </PageContainer>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import PageContainer from '../components/PageContainer.vue'
 import { useRecipesStore } from '../stores/recipes'
-import { useRouter } from 'vue-router'
+import { iconForCategory } from '../utils/categoryIcons'
 
 const route = useRoute()
-const store = useRecipesStore()
 const router = useRouter()
+const store = useRecipesStore()
 const recipeId = computed(() => String(route.params.id))
 const recipe = computed(() => store.getRecipeById(recipeId.value))
 const deleting = ref(false)
 const error = ref('')
+const openDelete = ref(false)
+
+const checkedIngredients = ref(new Set())
+const checkedSteps = ref(new Set())
+const currentServings = ref(1)
 
 onMounted(() => {
   store.ensureRecipesLoaded().catch(() => {})
 })
 
-// Checked state for ingredients and steps (must be defined before watch with immediate)
-const checkedIngredients = ref(new Set())
-const checkedSteps = ref(new Set())
-
-const currentServings = ref(1)
-watch(recipe, (r) => {
-  currentServings.value = r?.servings || 1
-  // Reset checked states when recipe changes
+watch(recipe, (value) => {
+  currentServings.value = value?.servings || 1
   checkedIngredients.value = new Set()
   checkedSteps.value = new Set()
 }, { immediate: true })
@@ -108,12 +223,11 @@ watch(recipe, (r) => {
 function increment() {
   currentServings.value = Math.max(1, (currentServings.value || 1) + 1)
 }
+
 function decrement() {
   currentServings.value = Math.max(1, (currentServings.value || 1) - 1)
 }
 
-// Delete dialog state
-const openDelete = ref(false)
 async function confirmDelete() {
   if (!recipe.value) return
   error.value = ''
@@ -128,28 +242,28 @@ async function confirmDelete() {
     openDelete.value = false
   }
 }
+
 const scale = computed(() => {
   const base = recipe.value?.servings || 1
-  const cur = currentServings.value || 1
-  return cur / base
+  const current = currentServings.value || 1
+  return current / base
 })
 
 const scaledIngredients = computed(() => {
   const list = recipe.value?.ingredients || []
   const factor = scale.value
-  return list.map(ing => {
-    if (ing && typeof ing === 'object' && ing.quantity != null) {
-      return { ...ing, quantity: +(ing.quantity * factor).toFixed(2) }
+  return list.map(ingredient => {
+    if (ingredient && typeof ingredient === 'object' && ingredient.quantity != null) {
+      return { ...ingredient, quantity: +(ingredient.quantity * factor).toFixed(2) }
     }
-    return ing?.name ? ing : { name: String(ing ?? '') }
+    return ingredient?.name ? ingredient : { name: String(ingredient ?? '') }
   })
 })
 
-function formatQuantity(q) {
-  // Format: integer if whole, otherwise max 2 decimals
-  const whole = Math.round(q)
-  if (Math.abs(whole - q) < 1e-9) return String(whole)
-  return q.toFixed(2)
+function formatQuantity(quantity) {
+  const whole = Math.round(quantity)
+  if (Math.abs(whole - quantity) < 1e-9) return String(whole)
+  return quantity.toFixed(2)
 }
 
 function toggleIngredient(index) {
@@ -173,17 +287,10 @@ function toggleStep(index) {
 function isStepChecked(index) {
   return checkedSteps.value.has(index)
 }
-
-function iconForCategory(c) {
-  const key = String(c).toLowerCase()
-  if (key.includes('polév')) return 'mdi-pot-steam-outline'
-  if (key.includes('hlav') || key.includes('maso')) return 'mdi-food-steak'
-  if (key.includes('dezert') || key.includes('slad')) return 'mdi-cupcake'
-  if (key.includes('příloh')) return 'mdi-food-variant'
-  if (key.includes('salát')) return 'mdi-food-outline'
-  if (key.includes('snída') || key.includes('pala')) return 'mdi-food-croissant'
-  return 'mdi-tag-outline'
-}
 </script>
 
-
+<style scoped>
+.servings-input :deep(.v-field) {
+  border-radius: 0;
+}
+</style>
