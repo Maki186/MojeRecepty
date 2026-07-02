@@ -1,8 +1,8 @@
 # MojeRecepty
 
-Soukroma webova aplikace pro ukladani rodinnych receptu. Frontend je postaveny jako SPA ve Vue 3 a data i prihlaseni obsluhuje Supabase.
+Soukromá webová aplikace pro ukládání rodinných receptů. Frontend je postavený jako SPA ve Vue 3 a data i přihlášení obsluhuje Supabase.
 
-## Aktualni stack
+## Aktuální stack
 
 - `Vue 3`
 - `Vite`
@@ -13,29 +13,51 @@ Soukroma webova aplikace pro ukladani rodinnych receptu. Frontend je postaveny j
 
 ## Struktura projektu
 
-Samotna aplikace je ve slozce `app/`.
+Samotná aplikace je ve složce `app/`.
 
-- `app/src/main.js` - vstupni bod aplikace
-- `app/src/router/index.js` - trasy a auth guard
-- `app/src/stores/auth.js` - prihlaseni uzivatele
-- `app/src/stores/recipes.js` - nacitani a sprava receptu
-- `app/src/views/` - jednotlive obrazovky aplikace
-- `app/src/lib/supabase.js` - inicializace Supabase klienta
+- `app/src/main.js` – vstupní bod aplikace
+- `app/src/router/index.js` – trasy a auth guard
+- `app/src/stores/auth.js` – přihlášení uživatele
+- `app/src/stores/recipes.js` – načítání a správa receptů
+- `app/src/views/` – jednotlivé obrazovky aplikace
+- `app/src/lib/supabase.js` – inicializace Supabase klienta
 
-V koreni repozitare je pouze pomocny `package.json`. Vyvojove skripty jsou definovane v `app/package.json`.
+V kořeni repozitáře je pouze pomocný `package.json`. Vývojové skripty jsou definované v `app/package.json`.
 
 ## Funkce
 
-- seznam receptu s filtrovani podle kategorii
-- detail receptu s prepocitem porci
-- pridani noveho receptu
-- uprava a smazani receptu
-- prihlaseni pres e-mail a heslo
-- synchronizace dat pres Supabase
+- seznam receptů s filtrováním podle kategorií
+- detail receptu s přepočtem porcí
+- přidání nového receptu
+- úprava a smazání receptu
+- přihlášení přes e-mail a heslo
+- synchronizace dat přes Supabase
 
-## Lokalni spusteni
+## Náhled aplikace
 
-Pozor: `npm run dev` v koreni projektu nefunguje, protoze `dev` script je definovany jen ve slozce `app`.
+### Domovská stránka
+
+![Domovská stránka – mobil](screenshots/homepage_mobile.png)
+
+![Domovská stránka – desktop](screenshots/homepage_desktop.png)
+
+### Detail receptu
+
+![Detail receptu – mobil](screenshots/recipe_detail_mobile.png)
+
+![Detail receptu – desktop](screenshots/recipe_detail_desktop.png)
+
+### Přidání receptu
+
+![Přidání receptu – desktop](screenshots/add_recipe_desktop.png)
+
+### Postup vaření
+
+![Postup receptu – mobil](screenshots/instructions_mobile.png)
+
+## Lokální spuštění
+
+Pozor: `npm run dev` v kořeni projektu nefunguje, protože `dev` script je definovaný jen ve složce `app`.
 
 ### Varianta 1
 
@@ -52,7 +74,7 @@ npm --prefix app install
 npm --prefix app run dev
 ```
 
-Po spusteni bude aplikace dostupna typicky na `http://localhost:5173`. Pokud je port obsazeny, Vite pouzije jiny, napriklad `5174`.
+Po spuštění bude aplikace dostupná typicky na `http://localhost:5173`. Pokud je port obsazený, Vite použije jiný, například `5174`.
 
 ## Build
 
@@ -60,22 +82,22 @@ Po spusteni bude aplikace dostupna typicky na `http://localhost:5173`. Pokud je 
 npm --prefix app run build
 ```
 
-Vystup se generuje do `app/dist`.
+Výstup se generuje do `app/dist`.
 
-## Environment promenne
+## Environment proměnné
 
-Frontend ocekava tyto promenne v `app/.env`:
+Frontend očekává tyto proměnné v `app/.env`:
 
 ```bash
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
 ```
 
-Pouzivej pouze anonymni klic urceny pro frontend. Service role key do klienta nepatri.
+Používej pouze anonymní klíč určený pro frontend. Service role key do klienta nepatří.
 
-## Datovy model
+## Datový model
 
-Aplikace pracuje s tabulkou `recipes` v Supabase. V kodu se pouzivaji zejmena tato pole:
+Aplikace pracuje s tabulkou `recipes` v Supabase. V kódu se používají zejména tato pole:
 
 - `id`
 - `user_id`
@@ -89,17 +111,17 @@ Aplikace pracuje s tabulkou `recipes` v Supabase. V kodu se pouzivaji zejmena ta
 - `notes`
 - `created_at`
 
-## Bezpecnost
+## Bezpečnost
 
-Bezpecnost dat stoji na autentizaci v Supabase a na spravne nastavenych RLS policy pro tabulku `recipes`.
+Bezpečnost dat stojí na autentizaci v Supabase a na správně nastavených RLS policy pro tabulku `recipes`.
 
-Doporuceni:
+Doporučení:
 
-- povol `SELECT`, `INSERT`, `UPDATE` a `DELETE` jen prihlasenemu uzivateli nad jeho vlastnimi zaznamy
-- vaz data pres `user_id = auth.uid()`
-- neukladej zadne tajne serverove klice do `VITE_*` promennych
+- povol `SELECT`, `INSERT`, `UPDATE` a `DELETE` jen přihlášenému uživateli nad jeho vlastními záznamy
+- váž data přes `user_id = auth.uid()`
+- neukládej žádné tajné serverové klíče do `VITE_*` proměnných
 
-Priklad logiky pro RLS:
+Příklad logiky pro RLS:
 
 ```sql
 create policy "Users can read own recipes"
@@ -130,4 +152,4 @@ using (auth.uid() = user_id);
 
 ## Stav projektu
 
-Projekt je nasazeny a bezici. Dokumentace v tomto souboru odpovida aktualnimu kodu v repozitari, zejmena aplikaci ve slozce `app/`.
+Projekt je nasazený a běžící. Dokumentace v tomto souboru odpovídá aktuálnímu kódu v repozitáři, zejména aplikaci ve složce `app/`.
