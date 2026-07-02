@@ -5,6 +5,7 @@
       <v-btn variant="flat" color="primary" class="text-black ml-2" :to="`/recipe/${recipe.id}/edit`">Upravit</v-btn>
       <v-btn variant="flat" color="red" class="text-black ml-2" @click="openDelete = true">Smazat</v-btn>
     </div>
+    <p v-if="error" class="text-sm text-red-600 mb-4">{{ error }}</p>
     <h1 class="text-3xl font-bold mb-2">{{ recipe.title }}</h1>
     <div class="text-gray-600 mb-4 flex items-center gap-4">
       <div class="flex gap-2 flex-wrap">
@@ -64,16 +65,18 @@
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" color="secondary" @click="openDelete = false">Zrušit</v-btn>
-          <v-btn color="red" variant="flat" class="text-black" @click="confirmDelete">Smazat</v-btn>
+          <v-btn color="red" variant="flat" class="text-black" :loading="deleting" :disabled="deleting" @click="confirmDelete">Smazat</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
+  <div v-else-if="store.loading" class="max-w-3xl mx-auto p-6 text-gray-600">Načítám recept...</div>
+  <div v-else-if="store.error" class="max-w-3xl mx-auto p-6 text-red-600">{{ store.error }}</div>
   <div v-else class="max-w-3xl mx-auto p-6 text-gray-600">Recept nenalezen.</div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRecipesStore } from '../stores/recipes'
 import { useRouter } from 'vue-router'
@@ -81,8 +84,14 @@ import { useRouter } from 'vue-router'
 const route = useRoute()
 const store = useRecipesStore()
 const router = useRouter()
-const recipeId = Number(route.params.id)
-const recipe = computed(() => store.recipes.find(r => r.id === recipeId))
+const recipeId = computed(() => String(route.params.id))
+const recipe = computed(() => store.getRecipeById(recipeId.value))
+const deleting = ref(false)
+const error = ref('')
+
+onMounted(() => {
+  store.ensureRecipesLoaded().catch(() => {})
+})
 
 // Checked state for ingredients and steps (must be defined before watch with immediate)
 const checkedIngredients = ref(new Set())
@@ -105,10 +114,19 @@ function decrement() {
 
 // Delete dialog state
 const openDelete = ref(false)
-function confirmDelete() {
+async function confirmDelete() {
   if (!recipe.value) return
-  store.deleteRecipe(recipe.value.id)
-  router.push('/')
+  error.value = ''
+  deleting.value = true
+  try {
+    await store.deleteRecipe(recipe.value.id)
+    router.push('/')
+  } catch (e) {
+    error.value = e?.message || 'Smazání receptu selhalo.'
+  } finally {
+    deleting.value = false
+    openDelete.value = false
+  }
 }
 const scale = computed(() => {
   const base = recipe.value?.servings || 1

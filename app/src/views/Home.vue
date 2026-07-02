@@ -20,7 +20,9 @@
       </v-chip-group>
     </div>
 
-    <div v-if="filteredRecipes.length === 0" class="text-gray-500">Zatím žádné recepty.</div>
+    <div v-if="store.loading" class="text-gray-500">Načítám recepty...</div>
+    <div v-else-if="store.error" class="text-red-600 mb-4">{{ store.error }}</div>
+    <div v-else-if="filteredRecipes.length === 0" class="text-gray-500">Zatím žádné recepty.</div>
     <v-container fluid class="pa-0">
       <v-row dense>
         <v-col v-for="r in filteredRecipes" :key="r.id" cols="12" sm="6" md="4">

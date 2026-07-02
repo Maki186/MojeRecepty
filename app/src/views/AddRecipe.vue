@@ -2,6 +2,7 @@
   <div class="max-w-xl ml-3 mr-3 mt-3 p-6">
     <h1 class="text-2xl font-bold mb-4">Přidat recept</h1>
     <form @submit.prevent="submit" class="space-y-4">
+      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
       <div>
         <label class="block text-sm font-medium mb-1">Název</label>
         <input v-model="title" class="w-full border rounded-md px-3 py-2" required />
@@ -41,14 +42,14 @@
       </div>
       <div class="flex gap-3">
         <v-btn to="/" variant="text" color="secondary">Zpět</v-btn>
-        <v-btn type="submit" color="primary" variant="flat" class="text-black">Uložit</v-btn>
+        <v-btn type="submit" color="primary" variant="flat" class="text-black" :loading="saving" :disabled="saving">Uložit</v-btn>
       </div>
     </form>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRecipesStore } from '../stores/recipes'
 import { CATEGORIES as categories } from '../constants/categories'
@@ -63,19 +64,29 @@ const stepsText = ref('')
 const notes = ref('')
 const router = useRouter()
 const store = useRecipesStore()
+const saving = ref(false)
+const error = ref('')
 
-function submit() {
-  store.addRecipe({
-    title: title.value,
-    description: description.value,
-    categories: selectedCategories.value,
-    minutes: minutes.value,
-    servings: servings.value,
-    ingredients: ingredientsText.value.split('\n').map(s => s.trim()).filter(Boolean),
-    steps: stepsText.value.split('\n').map(s => s.trim()).filter(Boolean),
-    notes: notes.value,
-  })
-  router.push('/')
+async function submit() {
+  error.value = ''
+  saving.value = true
+  try {
+    await store.addRecipe({
+      title: title.value,
+      description: description.value,
+      categories: selectedCategories.value,
+      minutes: minutes.value,
+      servings: servings.value,
+      ingredients: ingredientsText.value.split('\n').map(s => s.trim()).filter(Boolean),
+      steps: stepsText.value.split('\n').map(s => s.trim()).filter(Boolean),
+      notes: notes.value,
+    })
+    router.push('/')
+  } catch (e) {
+    error.value = e?.message || 'Uložení receptu selhalo.'
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 

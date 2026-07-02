@@ -21,12 +21,16 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from './stores/auth'
 
 const auth = useAuthStore()
-auth.init()
 const { isAuthenticated, username } = storeToRefs(auth)
+
+onMounted(() => {
+  auth.init().catch(() => {})
+})
 
 function logout() {
   auth.logout()
